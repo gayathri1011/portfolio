@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "vite",
-    "test": "echo \"No automated tests configured\""
-  },
+ "scripts": {
+  "dev": "vite",
+  "build": "node node_modules/vite/bin/vite.js build",
+  "test": "echo \"No automated tests configured\""
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
