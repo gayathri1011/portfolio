@@ -35,7 +35,7 @@ export default function Navbar() {
   const closeMenu = () => setMenuOpen(false);
 
   return <header className="navbar">
-    <a className="wordmark" href="#hero" onClick={closeMenu} aria-label="Go to home">RG</a>
+    <a className="wordmark" href="#hero" onClick={closeMenu} aria-label="Go to home">RSG</a>
     <nav className={menuOpen ? 'open' : ''} aria-label="Primary navigation">
       {navigation.map(([id, label], index) => <motion.a
         key={id}
