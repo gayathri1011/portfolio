@@ -257,6 +257,7 @@ body{font-synthesis:none;text-rendering:optimizeLegibility}
 @media(min-width:1101px){.terminal-window{transform:translate3d(calc(34px + var(--terminal-tx,0px)),var(--terminal-ty,0px),46px) rotateX(calc(4deg + var(--terminal-rx,0deg))) rotateY(calc(-15deg + var(--terminal-ry,0deg))) rotateZ(-1deg)}}
 @media(min-width:801px) and (max-width:1100px){.terminal-window{transform:translate3d(calc(-12px + var(--terminal-tx,0px)),var(--terminal-ty,0px),46px) rotateX(calc(4deg + var(--terminal-rx,0deg))) rotateY(calc(-15deg + var(--terminal-ry,0deg))) rotateZ(-1deg)}}
 @media(max-width:800px){.terminal-window{transform:translate3d(calc(-32px + var(--terminal-tx,0px)),var(--terminal-ty,0px),30px) rotateX(calc(2deg + var(--terminal-rx,0deg))) rotateY(calc(-8deg + var(--terminal-ry,0deg))) rotateZ(-.5deg)}}
+@media(max-width:800px){.menu-button{display:none!important}.navbar nav,.navbar nav.open{display:none!important}}
 
 /* Hero CTA emphasis only: keep the existing links and placement, sharpen their visual hierarchy. */
 .hero-actions .button{position:relative;isolation:isolate;font-size:11px;font-weight:700;letter-spacing:.13em;transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease,background .24s ease}
