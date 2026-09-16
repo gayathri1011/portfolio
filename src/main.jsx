@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
 import { BriefcaseBusiness as Linkedin, Code2 as Github, ExternalLink, Mail, MapPin, Phone, Send } from 'lucide-react';
 import '../styles.css';
 import Navbar from './components/Navbar';
 import PerformanceTerminalVisual from './components/PerformanceTerminalVisual';
 import PerformancePointerMotion from './components/PerformancePointerMotion';
+
+function AnimatePresence({ children }) { return children; }
 
 const projects = [
   { number: '01', title: 'ResumeIQ', copy: 'AI resume intelligence platform that evaluates ATS compatibility, matches candidates to roles, and turns skill gaps into an actionable next step.', tags: ['Next.js', 'FastAPI', 'Groq', 'MongoDB', 'pgvector'], demo: 'https://frontend-liard-phi-22.vercel.app/', github: 'https://github.com/gayathri1011/ResumeIQ.git', image: '/projects/Screenshot 2026-08-27 114744.png' },

@@ -1,60 +1,126 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useReducedMotion } from 'framer-motion';
 
 export default function PerformancePointerMotion() {
   const reduceMotion = useReducedMotion();
+  const frame = useRef(0);
 
   useEffect(() => {
-    if (reduceMotion || !window.matchMedia('(pointer: fine)').matches) return undefined;
+    if (reduceMotion) return undefined;
 
-    let frame = 0;
-    let active = true;
-    let latest = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     const root = document.documentElement;
-    const hero = document.querySelector('.hero');
-    const terminal = () => document.querySelector('.terminal-visual');
-    const reset = () => {
-      latest = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-      root.style.setProperty('--pointer-x', '0');
-      root.style.setProperty('--pointer-y', '0');
-      if (!frame) frame = requestAnimationFrame(update);
+    const position = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const render = () => {
+      frame.current = 0;
+      const x = Math.max(0, Math.min(window.innerWidth, position.x));
+      const y = Math.max(0, Math.min(window.innerHeight, position.y));
+      root.style.setProperty('--pointer-x', ((x / window.innerWidth - 0.5) * 2).toFixed(3));
+      root.style.setProperty('--pointer-y', ((y / window.innerHeight - 0.5) * 2).toFixed(3));
+      root.style.setProperty('--mouse-x', `${x}px`);
+      root.style.setProperty('--mouse-y', `${y}px`);
     };
-    const update = () => {
-      frame = 0;
-      if (!active) return;
-      const nx = (latest.x / window.innerWidth - .5) * 2;
-      const ny = (latest.y / window.innerHeight - .5) * 2;
-      root.style.setProperty('--pointer-x', nx.toFixed(3));
-      root.style.setProperty('--pointer-y', ny.toFixed(3));
-      root.style.setProperty('--mouse-x', `${latest.x}px`);
-      root.style.setProperty('--mouse-y', `${latest.y}px`);
-      const node = terminal();
-      if (!node) return;
-      const bounds = node.getBoundingClientRect();
-      const localX = Math.max(-1, Math.min(1, ((latest.x - bounds.left) / bounds.width - .5) * 2));
-      const localY = Math.max(-1, Math.min(1, ((latest.y - bounds.top) / bounds.height - .5) * 2));
-      node.style.setProperty('--terminal-rx', `${(-localY * 5).toFixed(2)}deg`);
-      node.style.setProperty('--terminal-ry', `${(localX * 7).toFixed(2)}deg`);
-      node.style.setProperty('--terminal-tx', `${(localX * 6).toFixed(1)}px`);
-      node.style.setProperty('--terminal-ty', `${(localY * 4).toFixed(1)}px`);
+    const scheduleRender = () => {
+      if (!frame.current) frame.current = requestAnimationFrame(render);
     };
-    const move = (event) => {
+    const updatePointer = (event) => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
-      latest = { x: event.clientX, y: event.clientY };
-      if (active && !frame) frame = requestAnimationFrame(update);
+      position.x = event.clientX;
+      position.y = event.clientY;
+      scheduleRender();
     };
-    const observer = new IntersectionObserver(([entry]) => {
-      active = entry.isIntersecting;
-      if (!active) reset();
-    }, { threshold: 0.05 });
-    if (hero) observer.observe(hero);
-    window.addEventListener('mousemove', move, { passive: true });
-    window.addEventListener('blur', reset);
+    const resetPointer = () => {
+      position.x = window.innerWidth / 2;
+      position.y = window.innerHeight / 2;
+      scheduleRender();
+    };
+    const stopCarouselEdgeAdvance = (event) => {
+      if (event.target.closest('.carousel-controls') || swipe.active) event.stopPropagation();
+    };
+    const swipe = { startX: null, active: false };
+    const startProjectSwipe = (event) => {
+      const card = event.target.closest('.carousel-card');
+      if (!card || event.target.closest('a, button')) return;
+      swipe.startX = event.clientX;
+      swipe.active = true;
+      event.stopPropagation();
+    };
+    const finishProjectSwipe = (event) => {
+      if (!swipe.active || swipe.startX === null) return;
+      const distance = event.clientX - swipe.startX;
+      swipe.startX = null;
+      swipe.active = false;
+      if (Math.abs(distance) < 70) return;
+      const selector = distance < 0 ? '[aria-label="Next project"]' : '[aria-label="Previous project"]';
+      document.querySelector(selector)?.click();
+    };
+
+    window.addEventListener('pointermove', updatePointer, { passive: true });
+    window.addEventListener('pointerleave', resetPointer, { passive: true });
+    window.addEventListener('blur', resetPointer, { passive: true });
+    document.addEventListener('pointermove', stopCarouselEdgeAdvance, true);
+    document.addEventListener('pointerdown', startProjectSwipe, true);
+    document.addEventListener('pointerup', finishProjectSwipe, true);
+    document.addEventListener('pointercancel', finishProjectSwipe, true);
+    render();
+
+    return () => {
+      window.removeEventListener('pointermove', updatePointer);
+      window.removeEventListener('pointerleave', resetPointer);
+      window.removeEventListener('blur', resetPointer);
+      document.removeEventListener('pointermove', stopCarouselEdgeAdvance, true);
+      document.removeEventListener('pointerdown', startProjectSwipe, true);
+      document.removeEventListener('pointerup', finishProjectSwipe, true);
+      document.removeEventListener('pointercancel', finishProjectSwipe, true);
+      if (frame.current) cancelAnimationFrame(frame.current);
+    };
+  }, [reduceMotion, frame]);
+
+  useEffect(() => {
+    const statGrid = document.querySelector('.stat-grid');
+    if (!statGrid) return undefined;
+
+    const statValues = [...statGrid.querySelectorAll('.stat strong')];
+    const finalValues = statValues.map((element) => element.textContent.trim());
+    statValues.forEach((element, index) => {
+      const finalValue = finalValues[index];
+      const decimals = finalValue.includes('.') ? finalValue.split('.')[1].length : 0;
+      element.textContent = decimals ? Number(0).toFixed(decimals) : '0'.padStart(finalValue.length, '0');
+    });
+    let animationFrames = [];
+    let observer;
+
+    const startCountUp = () => {
+      const startTime = performance.now();
+      const duration = 900;
+      const render = (time) => {
+        const progress = Math.min(1, (time - startTime) / duration);
+        const easedProgress = 1 - (1 - progress) ** 3;
+        statValues.forEach((element, index) => {
+          const finalValue = finalValues[index];
+          const decimals = finalValue.includes('.') ? finalValue.split('.')[1].length : 0;
+          const numericValue = Number(finalValue) * easedProgress;
+          const formattedValue = decimals ? numericValue.toFixed(decimals) : String(Math.round(numericValue)).padStart(finalValue.length, '0');
+          element.textContent = progress === 1 ? finalValue : formattedValue;
+        });
+        if (progress < 1) animationFrames.push(requestAnimationFrame(render));
+      };
+      animationFrames.push(requestAnimationFrame(render));
+    };
+
+    observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.disconnect();
+      if (reduceMotion) {
+        statValues.forEach((element, index) => { element.textContent = finalValues[index]; });
+        return;
+      }
+      startCountUp();
+    }, { threshold: 0.35 });
+    observer.observe(statGrid);
+
     return () => {
       observer.disconnect();
-      window.removeEventListener('mousemove', move);
-      window.removeEventListener('blur', reset);
-      if (frame) cancelAnimationFrame(frame);
+      animationFrames.forEach((frameId) => cancelAnimationFrame(frameId));
     };
   }, [reduceMotion]);
 
